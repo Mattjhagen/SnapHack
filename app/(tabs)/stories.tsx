@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Dimensions
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Plus } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import StoryViewer from '@/components/StoryViewer';
 
 const { width } = Dimensions.get('window');
 
@@ -12,6 +13,16 @@ interface Story {
   avatar: string;
   hasViewed: boolean;
   isOwn?: boolean;
+  stories?: StoryContent[];
+}
+
+interface StoryContent {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  duration?: number;
+  timestamp: number;
+  views?: number;
 }
 
 interface Discover {
@@ -22,11 +33,94 @@ interface Discover {
 }
 
 const MOCK_STORIES: Story[] = [
-  { id: '1', username: 'Your Story', avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400', hasViewed: false, isOwn: true },
-  { id: '2', username: 'john_doe', avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400', hasViewed: false },
-  { id: '3', username: 'sarah_wilson', avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400', hasViewed: true },
-  { id: '4', username: 'mike_chen', avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400', hasViewed: false },
-  { id: '5', username: 'emma_stone', avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=400', hasViewed: true },
+  { 
+    id: '1', 
+    username: 'Your Story', 
+    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400', 
+    hasViewed: false, 
+    isOwn: true,
+    stories: []
+  },
+  { 
+    id: '2', 
+    username: 'john_doe', 
+    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400', 
+    hasViewed: false,
+    stories: [
+      {
+        id: 's1',
+        type: 'image',
+        url: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=400',
+        duration: 5000,
+        timestamp: Date.now() - 3600000,
+        views: 45
+      },
+      {
+        id: 's2',
+        type: 'video',
+        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        duration: 10000,
+        timestamp: Date.now() - 1800000,
+        views: 32
+      }
+    ]
+  },
+  { 
+    id: '3', 
+    username: 'sarah_wilson', 
+    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400', 
+    hasViewed: true,
+    stories: [
+      {
+        id: 's3',
+        type: 'image',
+        url: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=400',
+        duration: 5000,
+        timestamp: Date.now() - 7200000,
+        views: 78
+      }
+    ]
+  },
+  { 
+    id: '4', 
+    username: 'mike_chen', 
+    avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400', 
+    hasViewed: false,
+    stories: [
+      {
+        id: 's4',
+        type: 'image',
+        url: 'https://images.pexels.com/photos/386025/pexels-photo-386025.jpeg?auto=compress&cs=tinysrgb&w=400',
+        duration: 5000,
+        timestamp: Date.now() - 5400000,
+        views: 23
+      },
+      {
+        id: 's5',
+        type: 'image',
+        url: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=400',
+        duration: 5000,
+        timestamp: Date.now() - 2700000,
+        views: 56
+      }
+    ]
+  },
+  { 
+    id: '5', 
+    username: 'emma_stone', 
+    avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=400', 
+    hasViewed: true,
+    stories: [
+      {
+        id: 's6',
+        type: 'image',
+        url: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&cs=tinysrgb&w=400',
+        duration: 5000,
+        timestamp: Date.now() - 9000000,
+        views: 89
+      }
+    ]
+  },
 ];
 
 const MOCK_DISCOVER: Discover[] = [
@@ -38,9 +132,36 @@ const MOCK_DISCOVER: Discover[] = [
 
 export default function StoriesScreen() {
   const [stories, setStories] = useState(MOCK_STORIES);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [currentStoryContent, setCurrentStoryContent] = useState<StoryContent[]>([]);
 
-  const renderStoryItem = (story: Story) => (
-    <TouchableOpacity key={story.id} style={styles.storyItem}>
+  const openStoryViewer = (story: Story, index: number) => {
+    if (story.stories && story.stories.length > 0) {
+      setCurrentStoryContent(story.stories);
+      setSelectedStoryIndex(index);
+      setShowStoryViewer(true);
+      
+      // Mark story as viewed
+      setStories(prevStories => 
+        prevStories.map(s => 
+          s.id === story.id ? { ...s, hasViewed: true } : s
+        )
+      );
+    }
+  };
+
+  const closeStoryViewer = () => {
+    setShowStoryViewer(false);
+    setCurrentStoryContent([]);
+  };
+
+  const renderStoryItem = (story: Story, index: number) => (
+    <TouchableOpacity 
+      key={story.id} 
+      style={styles.storyItem}
+      onPress={() => openStoryViewer(story, index)}
+    >
       <LinearGradient
         colors={story.hasViewed ? ['#E0E0E0', '#E0E0E0'] : ['#FFFC00', '#FF69B4', '#7B68EE']}
         style={styles.storyGradient}
@@ -75,6 +196,19 @@ export default function StoriesScreen() {
     </TouchableOpacity>
   );
 
+  if (showStoryViewer) {
+    return (
+      <StoryViewer
+        stories={currentStoryContent}
+        initialIndex={0}
+        onClose={closeStoryViewer}
+        onStoryComplete={(storyId) => {
+          console.log('Story completed:', storyId);
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -89,7 +223,7 @@ export default function StoriesScreen() {
         {/* Stories Section */}
         <View style={styles.section}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storiesContainer}>
-            {stories.map(renderStoryItem)}
+            {stories.map((story, index) => renderStoryItem(story, index))}
           </ScrollView>
         </View>
 

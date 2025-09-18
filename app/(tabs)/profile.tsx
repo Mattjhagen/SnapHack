@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Switch } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Settings, UserPlus, Trophy, Star, Bell, Lock, HelpCircle, LogOut } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '@/contexts/AuthContext';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 interface ProfileStat {
   label: string;
@@ -24,9 +27,44 @@ const PROFILE_STATS: ProfileStat[] = [
 ];
 
 export default function ProfileScreen() {
+  const { user, logout, updateSnapScore } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = useState(true);
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await logout();
+            router.replace('/auth/login');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSnapScoreIncrement = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    updateSnapScore(10);
+  };
 
   const SETTINGS_SECTIONS = [
     {
@@ -58,7 +96,7 @@ export default function ProfileScreen() {
       title: 'Support',
       items: [
         { icon: HelpCircle, title: 'Help Center', subtitle: 'Get help and support' },
-        { icon: LogOut, title: 'Log Out', subtitle: 'Sign out of your account' },
+        { icon: LogOut, title: 'Log Out', subtitle: 'Sign out of your account', onPress: handleLogout },
       ]
     }
   ];
@@ -85,8 +123,8 @@ export default function ProfileScreen() {
         key={item.title}
         style={styles.settingItem}
         onPress={() => {
-          if (item.title === 'Log Out') {
-            // Handle logout
+          if (item.onPress) {
+            item.onPress();
           }
         }}
       >
@@ -139,8 +177,8 @@ export default function ProfileScreen() {
             </View>
           </LinearGradient>
           
-          <Text style={styles.username}>@yourhandle</Text>
-          <Text style={styles.displayName}>Your Name</Text>
+          <Text style={styles.username}>@{user.username}</Text>
+          <Text style={styles.displayName}>{user.displayName}</Text>
           
           <TouchableOpacity style={styles.editProfileButton}>
             <Text style={styles.editProfileText}>Edit Profile</Text>
@@ -149,12 +187,18 @@ export default function ProfileScreen() {
 
         {/* Stats Section */}
         <View style={styles.statsSection}>
-          {PROFILE_STATS.map((stat, index) => (
-            <TouchableOpacity key={stat.label} style={styles.statItem}>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity style={styles.statItem} onPress={handleSnapScoreIncrement}>
+            <Text style={styles.statValue}>{user.snapScore.toLocaleString()}</Text>
+            <Text style={styles.statLabel}>Snap Score</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statValue}>{user.friendsCount}</Text>
+            <Text style={styles.statLabel}>Friends</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statValue}>{user.streaksCount}</Text>
+            <Text style={styles.statLabel}>Streaks</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Actions */}
@@ -374,5 +418,14 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     color: '#666666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#FFFFFF',
   },
 });
