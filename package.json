@@ -5,8 +5,15 @@
   "private": true,
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
+    "start": "EXPO_NO_TELEMETRY=1 expo start",
+    "ios": "expo start --ios",
+    "android": "expo start --android",
+    "web": "expo start --web",
     "build:web": "expo export --platform web",
-    "lint": "expo lint"
+    "build:ios": "expo build:ios",
+    "build:android": "expo build:android",
+    "lint": "expo lint",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
