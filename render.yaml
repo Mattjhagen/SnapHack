@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: snaphack
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: EXPO_PUBLIC_API_URL
+        value: https://snaphack.onrender.com
