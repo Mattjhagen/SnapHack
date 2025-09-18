@@ -2,10 +2,13 @@ services:
   - type: static
     name: snaphack
     plan: free
-    buildCommand: npm install && npm run build:web
+    nodeVersion: 18
+    buildCommand: npm install && npx expo export --platform web --output-dir dist
     publishDirectory: dist
     envVars:
       - key: NODE_ENV
         value: production
       - key: EXPO_PUBLIC_API_URL
         value: https://snaphack.onrender.com
+      - key: EXPO_NO_TELEMETRY
+        value: 1
