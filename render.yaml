@@ -1,10 +1,9 @@
 services:
-  - type: web
+  - type: static
     name: snaphack
-    env: node
     plan: free
     buildCommand: npm install && npm run build:web
-    startCommand: npm start
+    publishDirectory: dist
     envVars:
       - key: NODE_ENV
         value: production
