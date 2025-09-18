@@ -60,7 +60,6 @@
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.45",
     "typescript": "~5.3.3",
-    "serve": "^14.2.1",
-    "@expo/webpack-config": "^19.0.1"
+    "serve": "^14.2.1"
   }
 }
