@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
-    "start": "npx expo start --web --port $PORT",
+    "start": "npx serve dist -p $PORT",
     "start:dev": "EXPO_NO_TELEMETRY=1 expo start",
     "ios": "expo start --ios",
     "android": "expo start --android",
@@ -59,6 +59,8 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.45",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "serve": "^14.2.1",
+    "@expo/webpack-config": "^19.0.1"
   }
 }
